@@ -19,25 +19,29 @@ type connector struct {
 	t chan time.Time
 }
 
-func (ch connector) Message(a, b, c string) {
+func (ch connector) Message(token, msg, id string) {
 	if ch.t != nil {
 		ch.t <- time.Now()
 	}
-	ch.c.Message(a, b, c)
+	instance := getInstance(token)
+	ch.c.Message(instance, msg, id)
 }
-func (ch connector) NewEndpoint(a, b string) {
+func (ch connector) NewEndpoint(token, endpoint string) {
 	if ch.t != nil {
 		ch.t <- time.Now()
 	}
-	ch.c.NewEndpoint(a, b)
+
+	instance := getInstance(token)
+	ch.c.NewEndpoint(instance, endpoint)
 }
 
-func (ch connector) Unregistered(a string) {
+func (ch connector) Unregistered(token string) {
 	if ch.t != nil {
 		ch.t <- time.Now()
 	}
-	removeToken(a)
-	ch.c.Unregistered(a)
+	instance := getInstance(token)
+	removeToken(token)
+	ch.c.Unregistered(instance)
 }
 
 //Initializes the bus and object
@@ -53,7 +57,15 @@ func Initialize(name string, handler dbus.ConnectorHandler) {
 	if err != nil {
 		//TODO
 	}
-	err = client.StartHandling(dbus.NewConnector(connector{c: handler}))
+
+	// if the handler passed in is already of type connector (from InitializeAndCheck), don't wrap it in another connector. If its not then wrap with connector
+	var conn connector
+	var ok bool
+	if conn, ok = handler.(connector); !ok {
+		conn = connector{c: handler}
+	}
+
+	err = client.StartHandling(dbus.NewConnector(conn))
 	if err != nil {
 		//TODO
 	}
@@ -62,7 +74,7 @@ func Initialize(name string, handler dbus.ConnectorHandler) {
 
 //InitializeAndCheck is a convienience method that handles initialization and checking whether app started in the background.
 // The background check checks whether the argument UNIFIEDPUSH_DBUS_BACKGROUND_ACTIVATION is input.
-// Listens for 3 seconds after the last message and then stops.
+// Listens for 3 seconds after the last message and then exits.
 func InitializeAndCheck(name string, handler dbus.ConnectorHandler) {
 	if !containsString(os.Args, definitions.ConnectorBackgroundArgument) {
 		Initialize(name, handler)
