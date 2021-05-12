@@ -2,4 +2,4 @@
 # in my case this directory was ~/.local/share/dbus-1/services/
 [D-BUS Service]
 Name=cc.malhotra.karmanyaah.testapp.golibrary
-Exec=/home/karmanyaahm/Documents/code/forks/unified_push/go_dbus_connector/main UNIFIEDPUSH_DBUS_BACKGROUND_ACTIVATION
+Exec=<path to binary>/<binary name> UNIFIEDPUSH_DBUS_BACKGROUND_ACTIVATION
