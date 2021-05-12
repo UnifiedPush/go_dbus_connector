@@ -15,6 +15,8 @@ const (
 const (
 	ConnectorPath      = "/org/unifiedpush/Connector"
 	ConnectorInterface = "org.unifiedpush.Connector1"
+
+	ConnectorBackgroundArgument = "UNIFIEDPUSH_DBUS_BACKGROUND_ACTIVATION"
 )
 
 const (

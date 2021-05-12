@@ -70,7 +70,8 @@ func (c *Client) PickDistributor(dist string) *Distributor {
 	return NewDistributor(object)
 }
 
-func (c *Client) StartConnector(connector Connector) error {
+//StartHandling exports the connector interface and requests the app's name on the bus
+func (c *Client) StartHandling(connector Connector) error {
 	err := c.conn.Export(connector, definitions.ConnectorPath, definitions.ConnectorInterface)
 	if err != nil {
 		//TODO
@@ -84,37 +85,33 @@ func (c *Client) StartConnector(connector Connector) error {
 	return nil
 }
 
-func NewConnector(
-	callbackMsg func(token, message, messageID string),
-	callbackEndpoint func(token, endpoint string),
-	callbackUnregister func(token string),
-) Connector {
+func NewConnector(handler ConnectorHandler) Connector {
 	return Connector{
-		callbackMsg:        callbackMsg,
-		callbackEndpoint:   callbackEndpoint,
-		callbackUnregister: callbackUnregister,
+		h: handler,
 	}
+}
+
+type ConnectorHandler interface {
+	Message(token, message, msgID string)
+	NewEndpoint(token, endpoint string)
+	Unregistered(token string)
 }
 
 type Connector struct {
-	callbackMsg        func(string, string, string)
-	callbackEndpoint   func(string, string)
-	callbackUnregister func(string)
+	h ConnectorHandler
 }
 
 func (c *Connector) Message(token, message, msgID string) *dbus.Error {
-	if c.callbackMsg != nil {
-		c.callbackMsg(token, message, msgID)
-	}
+	c.h.Message(token, message, msgID)
 	return nil
 }
 
 func (c *Connector) NewEndpoint(token, endpoint string) *dbus.Error {
-	c.callbackEndpoint(token, endpoint)
+	c.h.NewEndpoint(token, endpoint)
 	return nil
 }
 
 func (c *Connector) Unregistered(token string) *dbus.Error {
-	c.callbackUnregister(token)
+	c.h.Unregistered(token)
 	return nil
 }

@@ -2,19 +2,37 @@ package store
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"os"
 
-	"github.com/google/uuid"
 	"github.com/unifiedpush/go_dbus_connector/definitions"
 )
+
+type Instance struct {
+	Token string
+}
+
+func NewStorage(appName string) *Storage {
+	var st Storage
+	b, err := os.ReadFile(definitions.StoragePath(appName))
+	if errors.Is(err, os.ErrNotExist) {
+		return &Storage{
+			AppName:   appName,
+			Instances: map[string]Instance{},
+		}
+	}
+	err = json.Unmarshal(b, &st)
+	if err != nil {
+		//TODO
+	}
+	return &st
+}
 
 type Storage struct {
 	AppName     string
 	Distributor string
-	Instances   map[string]struct { //map key is instance
-		Token    uuid.UUID
-		Endpoint string
-	}
+	Instances   map[string]Instance //map key is instance
 }
 
 func (s *Storage) Commit() error {
