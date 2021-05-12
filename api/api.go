@@ -86,16 +86,18 @@ func InitializeAndCheck(name string, handler dbus.ConnectorHandler) {
 	// should only be a problem for unregister but inefficient find better architecture
 	Initialize(name, connector{c: handler, t: lastCallTime})
 
-	for {
-		//if another message arrives or 3 seconds happen whichever first
-		select {
-		case <-lastCallTime:
-			continue
-			//TODO make time adjustable?
-		case <-time.After(3 * time.Second):
-			break
+	func() {
+		for {
+			//if another message arrives or 3 seconds happen whichever first
+			select {
+			case <-lastCallTime:
+				continue
+				//TODO make time adjustable?
+			case <-time.After(3 * time.Second):
+				return
+			}
 		}
-	}
+	}()
 	os.Exit(0)
 }
 
@@ -110,9 +112,11 @@ func Register(instance string) (registerStatus definitions.RegisterStatus, regis
 		return
 	}
 
-	err = saveNewToken(instance)
-	if err != nil {
-		return
+	if len(getToken(instance)) == 0 {
+		err = saveNewToken(instance)
+		if err != nil {
+			return
+		}
 	}
 	status, reason := client.PickDistributor(GetDistributor()).Register(dataStore.AppName, getToken(instance))
 	if status == definitions.RegisterStatusFailed || status == definitions.RegisterStatusRefused {

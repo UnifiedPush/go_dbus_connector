@@ -1,0 +1,5 @@
+# place this in your dbus service files directory to activate in the background
+# in my case this directory was ~/.local/share/dbus-1/services/
+[D-BUS Service]
+Name=cc.malhotra.karmanyaah.testapp.golibrary
+Exec=/home/karmanyaahm/Documents/code/forks/unified_push/go_dbus_connector/main UNIFIEDPUSH_DBUS_BACKGROUND_ACTIVATION

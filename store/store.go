@@ -3,7 +3,6 @@ package store
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"os"
 
 	"github.com/unifiedpush/go_dbus_connector/definitions"
@@ -40,6 +39,6 @@ func (s *Storage) Commit() error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(definitions.StoragePath(s.AppName), b, definitions.ConnectorPerm)
+	err = os.WriteFile(definitions.StoragePath(s.AppName), b, definitions.ConnectorPerm)
 	return err
 }

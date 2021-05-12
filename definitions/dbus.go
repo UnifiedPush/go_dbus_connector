@@ -42,9 +42,8 @@ func StoragePath(appName string) string {
 		basedir = filepath.Join(basedir, ".config")
 	}
 	basedir = filepath.Join(basedir, "unifiedpush", "connectors")
-	err := os.Mkdir(basedir, 0700)
+	err := os.MkdirAll(basedir, 0700)
 	if err != nil {
-		//TODO
 	}
 	finalFilename := filepath.Join(basedir, appName+".json")
 	storagePaths[appName] = finalFilename

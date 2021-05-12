@@ -77,6 +77,12 @@ func (c *Client) StartHandling(connector Connector) error {
 		//TODO
 	}
 
+	//TODO introspect?
+	//	n = introspect.Node{
+	//	}
+	//
+	//	err = c.conn.Export(introspect.NewIntrospectable(n), definitions.ConnectorPath, "org.freedesktop.DBus.Introspectable")
+
 	name, err := c.conn.RequestName(c.name, dbus.NameFlagDoNotQueue)
 	if err != nil || name != dbus.RequestNameReplyPrimaryOwner {
 		//TODO
@@ -101,17 +107,17 @@ type Connector struct {
 	h ConnectorHandler
 }
 
-func (c *Connector) Message(token, message, msgID string) *dbus.Error {
+func (c Connector) Message(token, message, msgID string) *dbus.Error {
 	c.h.Message(token, message, msgID)
 	return nil
 }
 
-func (c *Connector) NewEndpoint(token, endpoint string) *dbus.Error {
+func (c Connector) NewEndpoint(token, endpoint string) *dbus.Error {
 	c.h.NewEndpoint(token, endpoint)
 	return nil
 }
 
-func (c *Connector) Unregistered(token string) *dbus.Error {
+func (c Connector) Unregistered(token string) *dbus.Error {
 	c.h.Unregistered(token)
 	return nil
 }
