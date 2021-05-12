@@ -39,7 +39,7 @@ func StoragePath(appName string) string {
 		}
 		basedir = filepath.Join(basedir, ".config")
 	}
-	basedir = filepath.Join(basedir, "unifiedpush", "connectors", appName)
+	basedir = filepath.Join(basedir, "unifiedpush", "connectors")
 	err := os.Mkdir(basedir, 0700)
 	if err != nil {
 		//TODO

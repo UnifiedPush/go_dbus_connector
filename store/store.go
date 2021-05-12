@@ -12,7 +12,8 @@ type Storage struct {
 	AppName     string
 	Distributor string
 	Instances   map[string]struct { //map key is instance
-		Token uuid.UUID
+		Token    uuid.UUID
+		Endpoint string
 	}
 }
 
