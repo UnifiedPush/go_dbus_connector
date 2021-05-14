@@ -7,16 +7,22 @@ package main
 typedef void messageCallback( char*, char*, char*);
 static void MessageCallback(messageCallback* f, char *a, char *b, char* c) {
 	(*f)(a,b,c);
+	free(a);
+	free(b);
+	free(c);
 }
 
 typedef void endpointCallback(char*, char*);
 static void EndpointCallback(endpointCallback* f, char *a, char *b) {
 	(*f)(a,b);
+	free(a);
+	free(b);
 }
 
 typedef void unregisteredCallback( char*);
 static void UnregisteredCallback(unregisteredCallback* f, char *a) {
 	(*f)(a);
+	free(a);
 }
 
 //TODO find better way of syncing up to go defintions
@@ -123,13 +129,17 @@ func UPSaveDistributor(dist *C.char) {
 }
 
 //export UPTryUnregister
-func UPTryUnregister(instance *C.char) (err C.uint) {
-	return
+func UPTryUnregister(instance *C.char) {
+	api.TryUnregister(C.GoString(instance))
 }
 
 //export UPRemoveDistributor
-func UPRemoveDistributor() {
-
+func UPRemoveDistributor() (err C.uint) {
+	errret := api.RemoveDistributor()
+	if errret != nil {
+		err = C.uint(1)
+	}
+	return
 }
 
 func main() {}
