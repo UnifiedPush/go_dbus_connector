@@ -1,6 +1,7 @@
 package dbus
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/godbus/dbus/v5"
@@ -24,8 +25,10 @@ func (c *Client) InitializeDefaultConnection() error {
 
 func (c *Client) Close() {
 	if c.conn != nil {
-		c.conn.Close()
-		//TODO: does this need to be error handled
+		err := c.conn.Close()
+		if err != nil {
+			panic(err) //huge error if ever can't close
+		}
 	}
 }
 
@@ -50,23 +53,6 @@ func (c *Client) PickDistributor(dist string) *Distributor {
 	}
 
 	object := c.conn.Object(dist, definitions.DistributorPath)
-	//TODO check interface impl maybe in future
-	//node, err := introspect.Call(object)
-	//if err != nil {
-	//	//TODO
-	//}
-
-	//good := false
-	//for _, i := range node.Interfaces {
-	//	if i.Name == definitions.DistributorInterface {
-	//		good = true
-	//		break
-	//	}
-	//}
-
-	//if !good {
-	//	return nil
-	//}
 	return NewDistributor(object)
 }
 
@@ -74,18 +60,15 @@ func (c *Client) PickDistributor(dist string) *Distributor {
 func (c *Client) StartHandling(connector Connector) error {
 	err := c.conn.Export(connector, definitions.ConnectorPath, definitions.ConnectorInterface)
 	if err != nil {
-		//TODO
+		return err
 	}
 
-	//TODO introspect?
-	//	n = introspect.Node{
-	//	}
-	//
-	//	err = c.conn.Export(introspect.NewIntrospectable(n), definitions.ConnectorPath, "org.freedesktop.DBus.Introspectable")
-
 	name, err := c.conn.RequestName(c.name, dbus.NameFlagDoNotQueue)
-	if err != nil || name != dbus.RequestNameReplyPrimaryOwner {
-		//TODO
+	if err != nil {
+		return err
+	}
+	if name != dbus.RequestNameReplyPrimaryOwner {
+		return errors.New("Cannot request name on dbus")
 	}
 
 	return nil
