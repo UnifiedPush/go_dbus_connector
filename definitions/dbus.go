@@ -56,6 +56,7 @@ const (
 	RegisterStatusNewEndpoint RegisterStatus = iota
 	RegisterStatusRefused
 	RegisterStatusFailed
+	RegisterStatusFailedRequest = 99
 )
 
 var RegisterStatusMap = map[string]RegisterStatus{

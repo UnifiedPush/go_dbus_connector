@@ -5,6 +5,8 @@ import (
 	"github.com/unifiedpush/go_dbus_connector/definitions"
 )
 
+var ()
+
 func NewDistributor(object dbus.BusObject) *Distributor {
 	return &Distributor{
 		object: object,
@@ -20,12 +22,12 @@ func (d *Distributor) Register(name, token string) (definitions.RegisterStatus, 
 	err := d.object.Call(definitions.DistributorInterface+".Register", dbus.Flags(0), name, token).Store(&status, &reason)
 
 	if err != nil {
-		//TODO
+		return definitions.RegisterStatusFailedRequest, ""
 	}
 
 	registerStatus, ok := definitions.RegisterStatusMap[status]
 	if !ok {
-		//TODO
+		return definitions.RegisterStatusFailedRequest, ""
 	}
 
 	return registerStatus, reason
