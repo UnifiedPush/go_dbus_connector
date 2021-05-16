@@ -23,7 +23,7 @@ func NewStorage(appName string) *Storage {
 	}
 	err = json.Unmarshal(b, &st)
 	if err != nil {
-		//TODO
+		return nil
 	}
 	return &st
 }
@@ -31,7 +31,8 @@ func NewStorage(appName string) *Storage {
 type Storage struct {
 	AppName     string
 	Distributor string
-	Instances   map[string]Instance //map key is instance
+	//map key is instance name
+	Instances map[string]Instance
 }
 
 func (s *Storage) Commit() error {

@@ -11,6 +11,11 @@ import (
 	"github.com/unifiedpush/go_dbus_connector/store"
 )
 
+var (
+	//ErrInstanceNotUnregistered informs if instances are not unregistered when executing a distributor change method
+	ErrInstanceNotUnregistered = errors.New("Instance isn't unregistered yet")
+)
+
 var client *dbus.Client
 var dataStore *store.Storage
 
@@ -40,14 +45,15 @@ func (ch connector) Unregistered(token string) {
 		ch.t <- time.Now()
 	}
 	instance := getInstance(token)
-	removeToken(token)
+	//FIXME how should I handle this
+	removeToken(token) //nolint:errcheck
 	ch.c.Unregistered(instance)
 }
 
 //Initializes the bus and object
-func Initialize(name string, handler dbus.ConnectorHandler) {
+func Initialize(name string, handler dbus.ConnectorHandler) error {
 	if len(name) == 0 {
-		//TODO err
+		return errors.New("invalid name")
 	}
 	if client != nil {
 		client.Close()
@@ -55,7 +61,7 @@ func Initialize(name string, handler dbus.ConnectorHandler) {
 	client = dbus.NewClient(name)
 	err := client.InitializeDefaultConnection()
 	if err != nil {
-		//TODO
+		return errors.New("DBus Error")
 	}
 
 	// if the handler passed in is already of type connector (from InitializeAndCheck), don't wrap it in another connector. If its not then wrap with connector
@@ -67,24 +73,30 @@ func Initialize(name string, handler dbus.ConnectorHandler) {
 
 	err = client.StartHandling(dbus.NewConnector(conn))
 	if err != nil {
-		//TODO
+		return errors.New("DBus Error")
 	}
 	dataStore = store.NewStorage(name)
+	if dataStore == nil {
+		return errors.New("Storage Err")
+	}
+	return nil
 }
 
 //InitializeAndCheck is a convienience method that handles initialization and checking whether app started in the background.
 // The background check checks whether the argument UNIFIEDPUSH_DBUS_BACKGROUND_ACTIVATION is input.
 // Listens for 3 seconds after the last message and then exits.
-func InitializeAndCheck(name string, handler dbus.ConnectorHandler) {
+// if running in the background this panics on error
+func InitializeAndCheck(name string, handler dbus.ConnectorHandler) error {
 	if !containsString(os.Args, definitions.ConnectorBackgroundArgument) {
-		Initialize(name, handler)
-		return
+		return Initialize(name, handler)
 	}
 	lastCallTime := make(chan time.Time)
 
-	//TODO might result in double running through connector,
-	// should only be a problem for unregister but inefficient find better architecture
-	Initialize(name, connector{c: handler, t: lastCallTime})
+	err := Initialize(name, connector{c: handler, t: lastCallTime})
+	if err != nil {
+		panic(err)
+		//panic bc in bg listener
+	}
 
 	func() {
 		for {
@@ -92,13 +104,14 @@ func InitializeAndCheck(name string, handler dbus.ConnectorHandler) {
 			select {
 			case <-lastCallTime:
 				continue
-				//TODO make time adjustable?
 			case <-time.After(3 * time.Second):
 				return
 			}
 		}
 	}()
+	client.Close()
 	os.Exit(0)
+	return nil
 }
 
 //Actual UP methods
@@ -126,8 +139,9 @@ func Register(instance string) (registerStatus definitions.RegisterStatus, regis
 }
 
 //TryUnregister attempts unregister, results are returned through callback
-func TryUnregister(instance string) {
-	client.PickDistributor(GetDistributor()).Unregister(getToken(instance))
+// any error returned is before unregister requested from dbus
+func TryUnregister(instance string) error {
+	return client.PickDistributor(GetDistributor()).Unregister(getToken(instance))
 }
 
 //Distributor things
@@ -151,7 +165,7 @@ func SaveDistributor(id string) error {
 		return err
 	}
 
-	//TODO @S1m should I force this check of ensuring input is a valid distrib
+	//checks if valid distrib
 	if s, err := GetDistributors(); err == nil {
 		if valid := containsString(s, id); !valid {
 			return errors.New("Not an ID of a valid distributor")
@@ -188,7 +202,7 @@ func saveNewToken(instance string) error {
 	if err != nil {
 		return err
 	}
-	dataStore.Instances[instance] = store.Instance{token.String()}
+	dataStore.Instances[instance] = store.Instance{Token: token.String()}
 	return dataStore.Commit()
 }
 
@@ -220,7 +234,7 @@ func containsString(a []string, b string) bool {
 }
 func storeIsEmpty() error {
 	if len(dataStore.Instances) != 0 {
-		return errors.New("Instances are not unregistered") //TODO define error properly
+		return ErrInstanceNotUnregistered
 	}
 	return nil
 }

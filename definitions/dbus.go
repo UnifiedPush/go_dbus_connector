@@ -36,14 +36,15 @@ func StoragePath(appName string) string {
 	if len(basedir) == 0 {
 		basedir = os.Getenv("HOME")
 		if len(basedir) == 0 {
-			panic(nil)
-			//TODO
+			basedir = "./" //FIXME: set to cwd if dunno wth is going on
 		}
 		basedir = filepath.Join(basedir, ".config")
 	}
 	basedir = filepath.Join(basedir, "unifiedpush", "connectors")
 	err := os.MkdirAll(basedir, 0700)
 	if err != nil {
+		basedir = "./"
+		//FIXME idk wth to do when there's an error here
 	}
 	finalFilename := filepath.Join(basedir, appName+".json")
 	storagePaths[appName] = finalFilename

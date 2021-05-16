@@ -3,6 +3,7 @@ package main
 /*
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef void messageCallback( char*, char*, char*);
 static void MessageCallback(messageCallback* f, char *a, char *b, char* c) {
@@ -29,7 +30,8 @@ static void UnregisteredCallback(unregisteredCallback* f, char *a) {
 typedef enum {
 	UP_REGISTER_STATUS_NEW_ENDPOINT = 0,
 	UP_REGISTER_STATUS_REFUSED = 1,
-	UP_REGISTER_STATUS_FAILED = 2
+	UP_REGISTER_STATUS_FAILED = 2,
+	UP_REGISTER_STATUS_FAILED_OTHER = 99
 } UP_REGISTER_STATUS;
 
 */
@@ -62,13 +64,14 @@ func UPInitializeAndCheck(
 	msg *C.messageCallback,
 	endpoint *C.endpointCallback,
 	unregistered *C.unregisteredCallback,
-) {
+) (ok C.bool) {
 	connector := Connector{
 		message:      msg,
 		newEndpoint:  endpoint,
 		unregistered: unregistered,
 	}
-	api.InitializeAndCheck(C.GoString(name), connector)
+	err := api.InitializeAndCheck(C.GoString(name), connector)
+	return err != nil
 }
 
 //export UPInitialize
@@ -77,13 +80,14 @@ func UPInitialize(
 	msg *C.messageCallback,
 	endpoint *C.endpointCallback,
 	unregistered *C.unregisteredCallback,
-) {
+) (ok C.bool) {
 	connector := Connector{
 		message:      msg,
 		newEndpoint:  endpoint,
 		unregistered: unregistered,
 	}
-	api.Initialize(C.GoString(name), connector)
+	err := api.Initialize(C.GoString(name), connector)
+	return err == nil
 }
 
 //export UPGetDistributors
@@ -116,30 +120,28 @@ func UPRegister(instance *C.char) (status C.UP_REGISTER_STATUS, reason *C.char) 
 	status = (C.UP_REGISTER_STATUS)(statusret)
 	reason = C.CString(reasonret)
 	if errret != nil {
-		status = (C.UP_REGISTER_STATUS)(99)
+		status = C.UP_REGISTER_STATUS_FAILED_OTHER
 		reason = C.CString(errret.Error())
 	}
 	return status, reason
 }
 
 //export UPSaveDistributor
-func UPSaveDistributor(dist *C.char) {
-	_ = api.SaveDistributor(C.GoString(dist))
-	//TODO
+func UPSaveDistributor(dist *C.char) (ok C.bool) {
+	err := api.SaveDistributor(C.GoString(dist))
+	return err == nil
 }
 
 //export UPTryUnregister
-func UPTryUnregister(instance *C.char) {
-	api.TryUnregister(C.GoString(instance))
+func UPTryUnregister(instance *C.char) (ok C.bool) {
+	err := api.TryUnregister(C.GoString(instance))
+	return err == nil
 }
 
 //export UPRemoveDistributor
-func UPRemoveDistributor() (err C.uint) {
-	errret := api.RemoveDistributor()
-	if errret != nil {
-		err = C.uint(1)
-	}
-	return
+func UPRemoveDistributor() (ok C.bool) {
+	err := api.RemoveDistributor()
+	return err == nil
 }
 
 func main() {}
