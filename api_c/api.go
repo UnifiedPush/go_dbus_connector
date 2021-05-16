@@ -74,7 +74,7 @@ func UPInitializeAndCheck(
 		unregistered: unregistered,
 	}
 	err := api.InitializeAndCheck(C.GoString(name), connector)
-	return err != nil
+	return err == nil
 }
 
 //export UPInitialize
@@ -100,6 +100,31 @@ func UPGetDistributors() (**C.char, C.size_t) {
 		ret = []string{}
 	}
 	return cStringArray(ret)
+}
+
+//CHECKTHIS: TODO
+//export UPFreeStringArray
+func UPFreeStringArray(inp **C.char, inp2 C.size_t) {
+	// Slice memory layout
+	var sl = struct {
+		addr uintptr
+		len  int
+		cap  int
+	}{uintptr(unsafe.Pointer(inp)), int(inp2), int(inp2)}
+
+	// Use unsafe to turn sl into a [] slice.
+	b := *(*[]*C.char)(unsafe.Pointer(&sl))
+	for _, i := range b {
+		UPFreeString(i)
+	}
+
+	//also free pointer to memory which contains pointers to strings
+	C.free(unsafe.Pointer(inp))
+}
+
+//export UPFreeString
+func UPFreeString(inp *C.char) {
+	C.free(unsafe.Pointer(inp))
 }
 
 func cStringArray(arr []string) (**C.char, C.size_t) {
