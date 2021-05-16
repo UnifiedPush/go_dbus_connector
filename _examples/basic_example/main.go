@@ -11,8 +11,7 @@ import (
 
 var Endpoint string
 
-type NotificationHandler struct {
-}
+type NotificationHandler struct{}
 
 func (n NotificationHandler) Message(instance, message, id string) {
 	fmt.Println("new message received")
@@ -31,7 +30,7 @@ func (n NotificationHandler) Message(instance, message, id string) {
 }
 
 func (n NotificationHandler) NewEndpoint(instance, endpoint string) {
-	//the endpoint should be sent to whatever server your app is using
+	// the endpoint should be sent to whatever server your app is using
 	Endpoint = endpoint
 	fmt.Println("New endpoint received", Endpoint)
 }
@@ -48,7 +47,7 @@ func main() {
 	if len(up.GetDistributor()) == 0 { // not picked distributor yet
 		pickDist()
 	}
-	//run this for each instance on each application startup to get the most up-to-date info
+	// run this for each instance on each application startup to get the most up-to-date info
 	result, reason, err := up.Register("")
 	if err != nil {
 		panic(err)
@@ -64,10 +63,9 @@ func main() {
 		fmt.Println("will receive registration soon", reason)
 	}
 
-	//do whatever your app does
+	// do whatever your app does
 	fmt.Println("app waiting now")
 	<-make(chan struct{})
-
 }
 
 func pickDist() {
@@ -98,5 +96,4 @@ func pickDist() {
 	if err != nil {
 		panic(err)
 	}
-
 }

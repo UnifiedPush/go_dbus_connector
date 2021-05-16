@@ -36,6 +36,7 @@ typedef enum {
 
 */
 import "C"
+
 import (
 	"unsafe"
 
@@ -51,9 +52,11 @@ type Connector struct {
 func (c Connector) Message(a, b, d string) {
 	go C.MessageCallback(c.message, C.CString(a), C.CString(b), C.CString(d))
 }
+
 func (c Connector) NewEndpoint(a, b string) {
 	go C.EndpointCallback(c.newEndpoint, C.CString(a), C.CString(b))
 }
+
 func (c Connector) Unregistered(a string) {
 	go C.UnregisteredCallback(c.unregistered, C.CString(a))
 }

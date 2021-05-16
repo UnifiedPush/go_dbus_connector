@@ -27,7 +27,7 @@ func (c *Client) Close() {
 	if c.conn != nil {
 		err := c.conn.Close()
 		if err != nil {
-			panic(err) //huge error if ever can't close
+			panic(err) // huge error if ever can't close
 		}
 	}
 }
@@ -56,7 +56,7 @@ func (c *Client) PickDistributor(dist string) *Distributor {
 	return NewDistributor(object)
 }
 
-//StartHandling exports the connector interface and requests the app's name on the bus
+// StartHandling exports the connector interface and requests the app's name on the bus
 func (c *Client) StartHandling(connector Connector) error {
 	err := c.conn.Export(connector, definitions.ConnectorPath, definitions.ConnectorInterface)
 	if err != nil {

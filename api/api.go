@@ -11,12 +11,12 @@ import (
 	"github.com/unifiedpush/go_dbus_connector/store"
 )
 
-var (
-	//ErrInstanceNotUnregistered informs if instances are not unregistered when executing a distributor change method
-	ErrInstanceNotUnregistered = errors.New("Instance isn't unregistered yet")
-)
+// ErrInstanceNotUnregistered informs if instances are not unregistered when executing a distributor change method
+var ErrInstanceNotUnregistered = errors.New("Instance isn't unregistered yet")
 
 var client *dbus.Client
+
+// maybe mutex the globals?
 var dataStore *store.Storage
 
 type connector struct {
@@ -31,6 +31,7 @@ func (ch connector) Message(token, msg, id string) {
 	instance := getInstance(token)
 	ch.c.Message(instance, msg, id)
 }
+
 func (ch connector) NewEndpoint(token, endpoint string) {
 	if ch.t != nil {
 		ch.t <- time.Now()
@@ -45,12 +46,12 @@ func (ch connector) Unregistered(token string) {
 		ch.t <- time.Now()
 	}
 	instance := getInstance(token)
-	//FIXME how should I handle this
+	// FIXME how should I handle this
 	removeToken(token) //nolint:errcheck
 	ch.c.Unregistered(instance)
 }
 
-//Initializes the bus and object
+// Initializes the bus and object
 func Initialize(name string, handler dbus.ConnectorHandler) error {
 	if len(name) == 0 {
 		return errors.New("invalid name")
@@ -82,7 +83,7 @@ func Initialize(name string, handler dbus.ConnectorHandler) error {
 	return nil
 }
 
-//InitializeAndCheck is a convienience method that handles initialization and checking whether app started in the background.
+// InitializeAndCheck is a convienience method that handles initialization and checking whether app started in the background.
 // The background check checks whether the argument UNIFIEDPUSH_DBUS_BACKGROUND_ACTIVATION is input.
 // Listens for 3 seconds after the last message and then exits.
 // if running in the background this panics on error
@@ -95,12 +96,12 @@ func InitializeAndCheck(name string, handler dbus.ConnectorHandler) error {
 	err := Initialize(name, connector{c: handler, t: lastCallTime})
 	if err != nil {
 		panic(err)
-		//panic bc in bg listener
+		// panic bc in bg listener
 	}
 
 	func() {
 		for {
-			//if another message arrives or 3 seconds happen whichever first
+			// if another message arrives or 3 seconds happen whichever first
 			select {
 			case <-lastCallTime:
 				continue
@@ -114,7 +115,7 @@ func InitializeAndCheck(name string, handler dbus.ConnectorHandler) error {
 	return nil
 }
 
-//Actual UP methods
+// Actual UP methods
 
 // TryRegister registers a new instance.
 // value of instance can be empty string for the default instance
@@ -138,26 +139,26 @@ func Register(instance string) (registerStatus definitions.RegisterStatus, regis
 	return status, reason, err
 }
 
-//TryUnregister attempts unregister, results are returned through callback
+// TryUnregister attempts unregister, results are returned through callback
 // any error returned is before unregister requested from dbus
 func TryUnregister(instance string) error {
 	return client.PickDistributor(GetDistributor()).Unregister(getToken(instance))
 }
 
-//Distributor things
+// Distributor things
 
-//GetDistributor returns current selected distributor or empty string
+// GetDistributor returns current selected distributor or empty string
 func GetDistributor() string {
 	return dataStore.Distributor
 }
 
-//GetDistributors lists all distributors that are available to register with
+// GetDistributors lists all distributors that are available to register with
 // (note the difference from GetDistributor singular)
 func GetDistributors() ([]string, error) {
 	return client.ListDistributors()
 }
 
-//SaveDistributor saves the distributor preference to use for future registrations
+// SaveDistributor saves the distributor preference to use for future registrations
 // valid values are picked from the list returned by GetDistributors
 // all instances (registered to the previous distributor) have to unregister before running this
 func SaveDistributor(id string) error {
@@ -165,7 +166,7 @@ func SaveDistributor(id string) error {
 		return err
 	}
 
-	//checks if valid distrib
+	// checks if valid distrib
 	if s, err := GetDistributors(); err == nil {
 		if valid := containsString(s, id); !valid {
 			return errors.New("Not an ID of a valid distributor")
@@ -186,9 +187,9 @@ func RemoveDistributor() error {
 	return dataStore.Commit()
 }
 
-//Token things
+// Token things
 
-//getToken returns token for instance or empty string if instance doesn't exist
+// getToken returns token for instance or empty string if instance doesn't exist
 func getToken(instance string) string {
 	a, ok := dataStore.Instances[instance]
 	if !ok {
@@ -211,7 +212,7 @@ func removeToken(instance string) error {
 	return dataStore.Commit()
 }
 
-//getInstance returns instance from token (for internal use) or empty string if not found
+// getInstance returns instance from token (for internal use) or empty string if not found
 func getInstance(token string) string {
 	for i, j := range dataStore.Instances {
 		if token == j.Token {
@@ -222,7 +223,7 @@ func getInstance(token string) string {
 	return ""
 }
 
-//utils
+// utils
 
 func containsString(a []string, b string) bool {
 	for _, i := range a {
@@ -232,6 +233,7 @@ func containsString(a []string, b string) bool {
 	}
 	return false
 }
+
 func storeIsEmpty() error {
 	if len(dataStore.Instances) != 0 {
 		return ErrInstanceNotUnregistered

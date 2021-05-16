@@ -31,7 +31,7 @@ func NewStorage(appName string) *Storage {
 type Storage struct {
 	AppName     string
 	Distributor string
-	//map key is instance name
+	// map key is instance name
 	Instances map[string]Instance
 }
 

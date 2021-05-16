@@ -1,0 +1,13 @@
+linters:
+  enable:
+    - errorlint
+    - forcetypeassert
+    - forbidigo
+    - exhaustive
+    - cyclop
+    - gofmt
+    - gosec
+    - misspell
+      # future - wrapcheck
+    - whitespace
+    - unconvert
