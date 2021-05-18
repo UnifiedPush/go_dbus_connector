@@ -5,7 +5,7 @@ package main
 #include <stdio.h>
 #include <stdbool.h>
 
-typedef void messageCallback( char*, char*, char*);
+typedef void messageCallback(char* instance, char* message, char* id);
 static void MessageCallback(messageCallback* f, char *a, char *b, char* c) {
 	(*f)(a,b,c);
 	free(a);
@@ -13,14 +13,14 @@ static void MessageCallback(messageCallback* f, char *a, char *b, char* c) {
 	free(c);
 }
 
-typedef void endpointCallback(char*, char*);
+typedef void endpointCallback(char* instance, char* endpoint);
 static void EndpointCallback(endpointCallback* f, char *a, char *b) {
 	(*f)(a,b);
 	free(a);
 	free(b);
 }
 
-typedef void unregisteredCallback( char*);
+typedef void unregisteredCallback(char* instance);
 static void UnregisteredCallback(unregisteredCallback* f, char *a) {
 	(*f)(a);
 	free(a);
@@ -61,6 +61,9 @@ func (c Connector) Unregistered(a string) {
 	go C.UnregisteredCallback(c.unregistered, C.CString(a))
 }
 
+/**
+ * UPInitializeAndCheck takes in essentailly the same arguments as api.InitializeAndCheck but as typedef'd functions.
+ */
 //export UPInitializeAndCheck
 func UPInitializeAndCheck(
 	name *C.char,
@@ -77,6 +80,9 @@ func UPInitializeAndCheck(
 	return err == nil
 }
 
+/**
+ * UPInitialize takes in essentailly the same arguments as api.Initialize but as typedef'd functions.
+ */
 //export UPInitialize
 func UPInitialize(
 	name *C.char,
@@ -103,6 +109,10 @@ func UPGetDistributors() (**C.char, C.size_t) {
 }
 
 //CHECKTHIS: TODO
+/**
+* UPFreeStringArray frees a string array ._. It's meant to be run on the output of UPGetDistributors.
+* Primarily a convinience function for bridging to higher level languages.
+ */
 //export UPFreeStringArray
 func UPFreeStringArray(inp **C.char, inp2 C.size_t) {
 	// Slice memory layout

@@ -45,6 +45,7 @@ func (ch connector) Unregistered(token string) {
 	if ch.t != nil {
 		ch.t <- time.Now()
 	}
+	// TODO instance might be empty based on spec idk what to do then with multi instance
 	instance := getInstance(token)
 	// FIXME how should I handle this
 	removeToken(token) //nolint:errcheck
