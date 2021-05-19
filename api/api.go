@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/unifiedpush/go_dbus_connector/dbus"
-	"github.com/unifiedpush/go_dbus_connector/definitions"
-	"github.com/unifiedpush/go_dbus_connector/store"
+	"unifiedpush.org/go/dbus_connector/dbus"
+	"unifiedpush.org/go/dbus_connector/definitions"
+	"unifiedpush.org/go/dbus_connector/store"
 )
 
 // ErrInstanceNotUnregistered informs if instances are not unregistered when executing a distributor change method

@@ -2,7 +2,7 @@ package dbus
 
 import (
 	"github.com/godbus/dbus/v5"
-	"github.com/unifiedpush/go_dbus_connector/definitions"
+	"unifiedpush.org/go/dbus_connector/definitions"
 )
 
 func NewDistributor(object dbus.BusObject) *Distributor {

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/unifiedpush/go_dbus_connector/definitions"
+	"unifiedpush.org/go/dbus_connector/definitions"
 )
 
 type Instance struct {

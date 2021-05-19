@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/gen2brain/beeep"
-	up "github.com/unifiedpush/go_dbus_connector/api"
-	"github.com/unifiedpush/go_dbus_connector/definitions"
+	up "unifiedpush.org/go/dbus_connector/api"
+	"unifiedpush.org/go/dbus_connector/definitions"
 )
 
 var Endpoint string

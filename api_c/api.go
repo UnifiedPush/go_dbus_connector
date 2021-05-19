@@ -40,7 +40,7 @@ import "C"
 import (
 	"unsafe"
 
-	"github.com/unifiedpush/go_dbus_connector/api"
+	"unifiedpush.org/go/dbus_connector/api"
 )
 
 type Connector struct {
