@@ -6,4 +6,4 @@ c-static:
 c-so:
 	go build -buildmode=c-shared -o bin/libunifiedpush.so ./api_c/
 test: c-so
-	go test ./...#todo
+	go test ./... #todo
