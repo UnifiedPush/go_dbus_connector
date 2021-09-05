@@ -88,7 +88,7 @@ func pickDist() {
 		}
 		fmt.Print("Pick one distributor by number  ")
 		var num int
-		fmt.Scanln(num)
+		fmt.Scanln(&num)
 		distributor = dist[num]
 		fmt.Println("Picked distributor", distributor)
 	}
