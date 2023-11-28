@@ -61,7 +61,7 @@ const (
 )
 
 var RegisterStatusMap = map[string]RegisterStatus{
-	"NEW_ENDPOINT":         RegisterStatusNewEndpoint,
-	"REGISTRATION_REFUSED": RegisterStatusRefused,
-	"REGISTRATION_FAILED":  RegisterStatusFailed,
+	"REGISTRATION_SUCCEEDED": RegisterStatusNewEndpoint,
+	"REGISTRATION_REFUSED":   RegisterStatusRefused,
+	"REGISTRATION_FAILED":    RegisterStatusFailed,
 }
