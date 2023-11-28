@@ -156,7 +156,12 @@ func UPGetDistributor() *C.char {
 
 //export UPRegister
 func UPRegister(instance *C.char) (status C.UP_REGISTER_STATUS, reason *C.char) {
-	statusret, reasonret, errret := api.Register(C.GoString(instance))
+	return UPRegisterWithDescription(instance, C.CString(""))
+}
+
+//export UPRegisterWithDescription
+func UPRegisterWithDescription(instance *C.char, description *C.char) (status C.UP_REGISTER_STATUS, reason *C.char) {
+	statusret, reasonret, errret := api.RegisterWithDescription(C.GoString(instance), C.GoString(description))
 	status = (C.UP_REGISTER_STATUS)(statusret)
 	reason = C.CString(reasonret)
 	if errret != nil {

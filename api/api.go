@@ -125,6 +125,13 @@ func InitializeAndCheck(fullName, friendlyName string, handler dbus.ConnectorHan
 // value of instance can be empty string for the default instance
 // registration endpoint is returned through the callback if method is successful
 func Register(instance string) (registerStatus definitions.RegisterStatus, registrationFailReason string, err error) {
+	return RegisterWithDescription(instance, "")
+}
+
+// RegisterWithDescription registers a new instance with a specific description.
+// value of instance can be empty string for the default instance
+// registration endpoint is returned through the callback if method is successful
+func RegisterWithDescription(instance, description string) (registerStatus definitions.RegisterStatus, registrationFailReason string, err error) {
 	if len(GetDistributor()) == 0 {
 		err = errors.New("No distributor selected")
 		return
@@ -132,7 +139,7 @@ func Register(instance string) (registerStatus definitions.RegisterStatus, regis
 
 	in, ok := getToken(instance)
 	if !ok {
-		in, err = generateNewToken(instance, "")
+		in, err = generateNewToken(instance, description)
 		if err != nil {
 			return
 		}
