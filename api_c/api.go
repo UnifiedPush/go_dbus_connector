@@ -66,7 +66,8 @@ func (c Connector) Unregistered(a string) {
  */
 //export UPInitializeAndCheck
 func UPInitializeAndCheck(
-	name *C.char,
+	fullName *C.char,
+	friendlyName *C.char,
 	msg *C.messageCallback,
 	endpoint *C.endpointCallback,
 	unregistered *C.unregisteredCallback,
@@ -76,7 +77,7 @@ func UPInitializeAndCheck(
 		newEndpoint:  endpoint,
 		unregistered: unregistered,
 	}
-	err := api.InitializeAndCheck(C.GoString(name), connector)
+	err := api.InitializeAndCheck(C.GoString(fullName), C.GoString(friendlyName), connector)
 	return err == nil
 }
 
@@ -85,7 +86,8 @@ func UPInitializeAndCheck(
  */
 //export UPInitialize
 func UPInitialize(
-	name *C.char,
+	fullName *C.char,
+	friendlyName *C.char,
 	msg *C.messageCallback,
 	endpoint *C.endpointCallback,
 	unregistered *C.unregisteredCallback,
@@ -95,7 +97,7 @@ func UPInitialize(
 		newEndpoint:  endpoint,
 		unregistered: unregistered,
 	}
-	err := api.Initialize(C.GoString(name), connector)
+	err := api.Initialize(C.GoString(fullName), C.GoString(friendlyName), connector)
 	return err == nil
 }
 
