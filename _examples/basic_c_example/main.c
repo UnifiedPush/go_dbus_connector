@@ -94,7 +94,7 @@ void pickDistributors()
 int main(int argc, char **argv)
 {
 
-	bool ok = UPInitializeAndCheck("cc.malhotra.karmanyaah.testapp.cgo", *newMessage, *newEndpoint, *unregistered);
+	bool ok = UPInitializeAndCheck("cc.malhotra.karmanyaah.testapp.cgo", "C example app", *newMessage, *newEndpoint, *unregistered);
 	if (ok) printf("successfully initialized notifications\n");
 
 	if (strnlen(UPGetDistributor(), 1) == 0)
