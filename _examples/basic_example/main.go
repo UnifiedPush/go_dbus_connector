@@ -42,7 +42,7 @@ func (n NotificationHandler) Unregistered(instance string) {
 
 func main() {
 	connector := NotificationHandler{}
-	up.InitializeAndCheck("cc.malhotra.karmanyaah.testapp.golibrary", connector)
+	up.InitializeAndCheck("cc.malhotra.karmanyaah.testapp.golibrary", "Golang Example App", connector)
 
 	if len(up.GetDistributor()) == 0 { // not picked distributor yet
 		pickDist()
