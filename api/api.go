@@ -25,7 +25,7 @@ type connector struct {
 	t chan time.Time
 }
 
-func (ch connector) Message(token, msg, id string) {
+func (ch connector) Message(token string, msg []byte, id string) {
 	if ch.t != nil {
 		ch.t <- time.Now()
 	}
