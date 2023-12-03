@@ -13,10 +13,10 @@ var Endpoint string
 
 type NotificationHandler struct{}
 
-func (n NotificationHandler) Message(instance, message, id string) {
+func (n NotificationHandler) Message(instance string, message []byte, id string) {
 	fmt.Println("new message received")
 	// this message can be in whatever format you like, in this case the title and message body are two strings seperated by a '-'
-	parts := strings.Split(message, "-")
+	parts := strings.Split(string(message), "-")
 
 	title := "No Title Provided"
 	if len(parts) > 1 {
