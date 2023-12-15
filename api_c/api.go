@@ -4,10 +4,11 @@ package main
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-typedef void messageCallback(char* instance, char* message, char* id);
-static void MessageCallback(messageCallback* f, char *a, char *b, char* c) {
-	(*f)(a,b,c);
+typedef void messageCallback(char* instance, uint8_t* message, int msglen, char* id);
+static void MessageCallback(messageCallback* f, char *a, uint8_t* b, int len, char* c) {
+	(*f)(a,b,len,c);
 	free(a);
 	free(b);
 	free(c);
@@ -49,8 +50,8 @@ type Connector struct {
 	unregistered *C.unregisteredCallback
 }
 
-func (c Connector) Message(a, b, d string) {
-	go C.MessageCallback(c.message, C.CString(a), C.CString(b), C.CString(d))
+func (c Connector) Message(a string, b[]byte, d string) {
+	go C.MessageCallback(c.message, C.CString(a), (*C.uint8_t)(C.CBytes(b)), C.int(len(b)), C.CString(d))
 }
 
 func (c Connector) NewEndpoint(a, b string) {
