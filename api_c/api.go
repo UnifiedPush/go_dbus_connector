@@ -6,8 +6,8 @@ package main
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef void messageCallback(char* instance, uint8_t* message, int msglen, char* id);
-static void MessageCallback(messageCallback* f, char *a, uint8_t* b, int len, char* c) {
+typedef void messageCallback(char* instance, uint8_t* message, size_t msglen, char* id);
+static void MessageCallback(messageCallback* f, char *a, uint8_t* b, size_t len, char* c) {
 	(*f)(a,b,len,c);
 	free(a);
 	free(b);
@@ -51,7 +51,7 @@ type Connector struct {
 }
 
 func (c Connector) Message(a string, b[]byte, d string) {
-	go C.MessageCallback(c.message, C.CString(a), (*C.uint8_t)(C.CBytes(b)), C.int(len(b)), C.CString(d))
+	go C.MessageCallback(c.message, C.CString(a), (*C.uint8_t)(C.CBytes(b)), C.size_t(len(b)), C.CString(d))
 }
 
 func (c Connector) NewEndpoint(a, b string) {
