@@ -50,7 +50,7 @@ type Connector struct {
 	unregistered *C.unregisteredCallback
 }
 
-func (c Connector) Message(a string, b[]byte, d string) {
+func (c Connector) Message(a string, b []byte, d string) {
 	go C.MessageCallback(c.message, C.CString(a), (*C.uint8_t)(C.CBytes(b)), C.size_t(len(b)), C.CString(d))
 }
 
