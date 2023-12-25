@@ -11,7 +11,7 @@ static void newMessage(char *instance, uint8_t *msg, size_t len, char *id)
 	// so if you need the data you should copy it somewhere
 
 	puts("new message: ");
-	write(stdout, msg, len);
+	fwrite(msg, len, 1, stdout);
 	puts("\n");
 }
 
