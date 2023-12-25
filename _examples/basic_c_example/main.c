@@ -3,13 +3,16 @@
 #include <unistd.h>
 #include <string.h>
 
-static void newMessage(char *instance, char *msg, char *id)
+static void newMessage(char *instance, uint8_t *msg, size_t len, char *id)
 {
 	//this message can be deserialized here from something like json or whatever encoding you like
 
 	// also note that the arguments to each of these input strings is freed after the function call
 	// so if you need the data you should copy it somewhere
-	printf("new message: %s\n", msg);
+
+	puts("new message: ");
+	fwrite(msg, len, 1, stdout);
+	puts("\n");
 }
 
 static void newEndpoint(char *instance, char *endpoint)
