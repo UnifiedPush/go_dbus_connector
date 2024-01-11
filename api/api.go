@@ -15,6 +15,7 @@ import (
 var ErrInstanceNotUnregistered = errors.New("Instance isn't unregistered yet")
 
 var client *dbus.Client
+var friendlyAppName string
 
 // maybe mutex the globals?
 var dataStore *store.Storage
@@ -24,7 +25,7 @@ type connector struct {
 	t chan time.Time
 }
 
-func (ch connector) Message(token, msg, id string) {
+func (ch connector) Message(token string, msg []byte, id string) {
 	if ch.t != nil {
 		ch.t <- time.Now()
 	}
@@ -52,15 +53,15 @@ func (ch connector) Unregistered(token string) {
 	ch.c.Unregistered(instance)
 }
 
-// Initializes the bus and object
-func Initialize(name string, handler dbus.ConnectorHandler) error {
-	if len(name) == 0 {
+// Initialize the bus and object
+func Initialize(fullName, friendlyName string, handler dbus.ConnectorHandler) error {
+	if len(fullName) == 0 {
 		return errors.New("invalid name")
 	}
 	if client != nil {
 		client.Close()
 	}
-	client = dbus.NewClient(name)
+	client = dbus.NewClient(fullName)
 	err := client.InitializeDefaultConnection()
 	if err != nil {
 		return errors.New("DBus Error")
@@ -77,10 +78,12 @@ func Initialize(name string, handler dbus.ConnectorHandler) error {
 	if err != nil {
 		return errors.New("DBus Error")
 	}
-	dataStore = store.NewStorage(name)
+	dataStore = store.NewStorage(fullName)
 	if dataStore == nil {
 		return errors.New("Storage Err")
 	}
+
+	friendlyAppName = friendlyName
 	return nil
 }
 
@@ -88,13 +91,13 @@ func Initialize(name string, handler dbus.ConnectorHandler) error {
 // The background check checks whether the argument UNIFIEDPUSH_DBUS_BACKGROUND_ACTIVATION is input.
 // Listens for 3 seconds after the last message and then exits.
 // if running in the background this panics on error
-func InitializeAndCheck(name string, handler dbus.ConnectorHandler) error {
+func InitializeAndCheck(fullName, friendlyName string, handler dbus.ConnectorHandler) error {
 	if !containsString(os.Args, definitions.ConnectorBackgroundArgument) {
-		return Initialize(name, handler)
+		return Initialize(fullName, friendlyName, handler)
 	}
 	lastCallTime := make(chan time.Time)
 
-	err := Initialize(name, connector{c: handler, t: lastCallTime})
+	err := Initialize(fullName, friendlyName, connector{c: handler, t: lastCallTime})
 	if err != nil {
 		panic(err)
 		// panic bc in bg listener
@@ -118,22 +121,30 @@ func InitializeAndCheck(name string, handler dbus.ConnectorHandler) error {
 
 // Actual UP methods
 
-// TryRegister registers a new instance.
+// Register registers a new instance.
 // value of instance can be empty string for the default instance
 // registration endpoint is returned through the callback if method is successful
 func Register(instance string) (registerStatus definitions.RegisterStatus, registrationFailReason string, err error) {
+	return RegisterWithDescription(instance, "")
+}
+
+// RegisterWithDescription registers a new instance with a specific description.
+// value of instance can be empty string for the default instance
+// registration endpoint is returned through the callback if method is successful
+func RegisterWithDescription(instance, description string) (registerStatus definitions.RegisterStatus, registrationFailReason string, err error) {
 	if len(GetDistributor()) == 0 {
 		err = errors.New("No distributor selected")
 		return
 	}
 
-	if len(getToken(instance)) == 0 {
-		err = saveNewToken(instance)
+	in, ok := getToken(instance)
+	if !ok {
+		in, err = generateNewToken(instance, description)
 		if err != nil {
 			return
 		}
 	}
-	status, reason := client.PickDistributor(GetDistributor()).Register(dataStore.AppName, getToken(instance))
+	status, reason := client.PickDistributor(GetDistributor()).Register(dataStore.AppName, in.Token, in.Description)
 	if status == definitions.RegisterStatusFailed || status == definitions.RegisterStatusRefused {
 		err = removeToken(instance)
 	}
@@ -143,7 +154,11 @@ func Register(instance string) (registerStatus definitions.RegisterStatus, regis
 // TryUnregister attempts unregister, results are returned through callback
 // any error returned is before unregister requested from dbus
 func TryUnregister(instance string) error {
-	return client.PickDistributor(GetDistributor()).Unregister(getToken(instance))
+	in, ok := getToken(instance)
+	if !ok {
+		return errors.New("Instance not found")
+	}
+	return client.PickDistributor(GetDistributor()).Unregister(in.Token)
 }
 
 // Distributor things
@@ -191,21 +206,31 @@ func RemoveDistributor() error {
 // Token things
 
 // getToken returns token for instance or empty string if instance doesn't exist
-func getToken(instance string) string {
+func getToken(instance string) (store.Instance, bool) {
 	a, ok := dataStore.Instances[instance]
 	if !ok {
-		return ""
+		return store.Instance{}, false
 	}
-	return a.Token
+	return a, true
 }
 
-func saveNewToken(instance string) error {
+func generateNewToken(instance, description string) (store.Instance, error) {
 	token, err := uuid.NewRandom()
 	if err != nil {
-		return err
+		return store.Instance{}, err
 	}
-	dataStore.Instances[instance] = store.Instance{Token: token.String()}
-	return dataStore.Commit()
+
+	// generate description if none is given
+	if len(description) == 0 {
+		description = friendlyAppName + " - " + instance
+		// just use the friendly name if there is only 1 instance
+		if len(instance) == 0 {
+			description = friendlyAppName
+		}
+	}
+
+	dataStore.Instances[instance] = store.Instance{Token: token.String(), Description: description}
+	return dataStore.Instances[instance], dataStore.Commit()
 }
 
 func removeToken(instance string) error {

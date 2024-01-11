@@ -4,10 +4,11 @@ package main
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-typedef void messageCallback(char* instance, char* message, char* id);
-static void MessageCallback(messageCallback* f, char *a, char *b, char* c) {
-	(*f)(a,b,c);
+typedef void messageCallback(char* instance, uint8_t* message, size_t msglen, char* id);
+static void MessageCallback(messageCallback* f, char *a, uint8_t* b, size_t len, char* c) {
+	(*f)(a,b,len,c);
 	free(a);
 	free(b);
 	free(c);
@@ -49,8 +50,8 @@ type Connector struct {
 	unregistered *C.unregisteredCallback
 }
 
-func (c Connector) Message(a, b, d string) {
-	go C.MessageCallback(c.message, C.CString(a), C.CString(b), C.CString(d))
+func (c Connector) Message(a string, b []byte, d string) {
+	go C.MessageCallback(c.message, C.CString(a), (*C.uint8_t)(C.CBytes(b)), C.size_t(len(b)), C.CString(d))
 }
 
 func (c Connector) NewEndpoint(a, b string) {
@@ -66,7 +67,8 @@ func (c Connector) Unregistered(a string) {
  */
 //export UPInitializeAndCheck
 func UPInitializeAndCheck(
-	name *C.char,
+	fullName *C.char,
+	friendlyName *C.char,
 	msg *C.messageCallback,
 	endpoint *C.endpointCallback,
 	unregistered *C.unregisteredCallback,
@@ -76,7 +78,7 @@ func UPInitializeAndCheck(
 		newEndpoint:  endpoint,
 		unregistered: unregistered,
 	}
-	err := api.InitializeAndCheck(C.GoString(name), connector)
+	err := api.InitializeAndCheck(C.GoString(fullName), C.GoString(friendlyName), connector)
 	return err == nil
 }
 
@@ -85,7 +87,8 @@ func UPInitializeAndCheck(
  */
 //export UPInitialize
 func UPInitialize(
-	name *C.char,
+	fullName *C.char,
+	friendlyName *C.char,
 	msg *C.messageCallback,
 	endpoint *C.endpointCallback,
 	unregistered *C.unregisteredCallback,
@@ -95,7 +98,7 @@ func UPInitialize(
 		newEndpoint:  endpoint,
 		unregistered: unregistered,
 	}
-	err := api.Initialize(C.GoString(name), connector)
+	err := api.Initialize(C.GoString(fullName), C.GoString(friendlyName), connector)
 	return err == nil
 }
 
@@ -154,7 +157,12 @@ func UPGetDistributor() *C.char {
 
 //export UPRegister
 func UPRegister(instance *C.char) (status C.UP_REGISTER_STATUS, reason *C.char) {
-	statusret, reasonret, errret := api.Register(C.GoString(instance))
+	return UPRegisterWithDescription(instance, C.CString(""))
+}
+
+//export UPRegisterWithDescription
+func UPRegisterWithDescription(instance *C.char, description *C.char) (status C.UP_REGISTER_STATUS, reason *C.char) {
+	statusret, reasonret, errret := api.RegisterWithDescription(C.GoString(instance), C.GoString(description))
 	status = (C.UP_REGISTER_STATUS)(statusret)
 	reason = C.CString(reasonret)
 	if errret != nil {

@@ -81,7 +81,7 @@ func NewConnector(handler ConnectorHandler) Connector {
 }
 
 type ConnectorHandler interface {
-	Message(token, message, msgID string)
+	Message(token string, message []byte, msgID string)
 	NewEndpoint(token, endpoint string)
 	Unregistered(token string)
 }
@@ -90,7 +90,7 @@ type Connector struct {
 	h ConnectorHandler
 }
 
-func (c Connector) Message(token, message, msgID string) *dbus.Error {
+func (c Connector) Message(token string, message []byte, msgID string) *dbus.Error {
 	c.h.Message(token, message, msgID)
 	return nil
 }

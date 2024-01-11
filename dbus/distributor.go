@@ -15,9 +15,9 @@ type Distributor struct {
 	object dbus.BusObject
 }
 
-func (d *Distributor) Register(name, token string) (definitions.RegisterStatus, string) {
+func (d *Distributor) Register(name, token, description string) (definitions.RegisterStatus, string) {
 	var status, reason string
-	err := d.object.Call(definitions.DistributorInterface+".Register", dbus.Flags(0), name, token).Store(&status, &reason)
+	err := d.object.Call(definitions.DistributorInterface+".Register", dbus.Flags(0), name, token, description).Store(&status, &reason)
 	if err != nil {
 		return definitions.RegisterStatusFailedRequest, ""
 	}

@@ -13,10 +13,10 @@ var Endpoint string
 
 type NotificationHandler struct{}
 
-func (n NotificationHandler) Message(instance, message, id string) {
+func (n NotificationHandler) Message(instance string, message []byte, id string) {
 	fmt.Println("new message received")
 	// this message can be in whatever format you like, in this case the title and message body are two strings seperated by a '-'
-	parts := strings.Split(message, "-")
+	parts := strings.Split(string(message), "-")
 
 	title := "No Title Provided"
 	if len(parts) > 1 {
@@ -42,7 +42,7 @@ func (n NotificationHandler) Unregistered(instance string) {
 
 func main() {
 	connector := NotificationHandler{}
-	up.InitializeAndCheck("cc.malhotra.karmanyaah.testapp.golibrary", connector)
+	up.InitializeAndCheck("cc.malhotra.karmanyaah.testapp.golibrary", "Golang Example App", connector)
 
 	if len(up.GetDistributor()) == 0 { // not picked distributor yet
 		pickDist()

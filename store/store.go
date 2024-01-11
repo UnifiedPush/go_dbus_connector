@@ -9,7 +9,8 @@ import (
 )
 
 type Instance struct {
-	Token string
+	Token       string
+	Description string
 }
 
 func NewStorage(appName string) *Storage {
